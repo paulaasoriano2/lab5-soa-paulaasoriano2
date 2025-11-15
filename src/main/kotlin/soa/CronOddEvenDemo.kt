@@ -71,15 +71,13 @@ class IntegrationApplication(
                 logger.info("🔀 Router: {} → {}", p, channel)
                 channel
             }
-
         }
-    
+
     @Bean
     fun pollerFlow(integerSource: AtomicInteger): IntegrationFlow =
         integrationFlow({ integerSource.getAndIncrement() }, { poller(Pollers.fixedRate(100)) }) {
             channel("numberChannel")
-    }
-
+        }
 
     /**
      * Integration flow for processing even numbers.
@@ -112,12 +110,11 @@ class IntegrationApplication(
                     "Number $obj"
                 } else {
                     obj // Se deja tal cual, para que los negativos pasen sin transformación
-                }   
+                }
             }
             handle { p ->
             }
         }
-    
 
     /**
      * Scheduled task that periodically sends negative random numbers via the gateway.
