@@ -40,6 +40,3 @@ Write a few sentences about:
 
 ---
 
-## Additional Notes
-
-Any other comments or observations about the assignment.
