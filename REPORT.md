@@ -15,8 +15,8 @@ Additionally, negative random numbers are injected via a scheduled gateway.
 
 ### Channels and Router
 
-All numbers pass through numberChannel.
-A router directs them based on parity: even → evenChannel, odd → oddChannel.
+There are two channels: oddChannel and evenChannel.
+A router directs numbers based on parity: even → evenChannel, odd → oddChannel.
 
 ### Processing
 
