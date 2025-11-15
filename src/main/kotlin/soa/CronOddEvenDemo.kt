@@ -51,8 +51,8 @@ class IntegrationApplication(
     fun oddChannel(): PublishSubscribeChannelSpec<*> = MessageChannels.publishSubscribe()
 
     /**
-     * Main integration flow that polls the integer source and routes messages.
-     * Polls every 100ms and routes based on even/odd logic.
+     * Main integration that transforms and routes messages
+     * and routes based on even/odd logic.
      */
     @Bean
     fun myFlow(integerSource: AtomicInteger): IntegrationFlow =
@@ -73,6 +73,9 @@ class IntegrationApplication(
             }
         }
 
+    /**
+     * Polls the integer source every 100 ms and sends the numbers to the number channel.
+     */
     @Bean
     fun pollerFlow(integerSource: AtomicInteger): IntegrationFlow =
         integrationFlow({ integerSource.getAndIncrement() }, { poller(Pollers.fixedRate(100)) }) {
@@ -113,6 +116,7 @@ class IntegrationApplication(
                 }
             }
             handle { p ->
+                logger.info("  ✅ Odd Handler: Processed [{}]", p.payload)
             }
         }
 
@@ -146,7 +150,7 @@ class SomeService {
  */
 @MessagingGateway
 interface SendNumber {
-    @Gateway(requestChannel = "oddChannel")
+    @Gateway(requestChannel = "numberChannel")
     fun sendNumber(number: Int)
 }
 
