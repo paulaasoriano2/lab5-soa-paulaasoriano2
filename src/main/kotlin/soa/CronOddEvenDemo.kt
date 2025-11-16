@@ -53,19 +53,21 @@ class IntegrationApplication(
     /**
      * Main integration that transforms and routes messages
      * and routes based on even/odd logic.
+     * Common channel for both even and odd numbers.
      */
     @Bean
     fun myFlow(integerSource: AtomicInteger): IntegrationFlow =
         integrationFlow("numberChannel") {
+            // the numbers come from the pollerFlow
             transform { num: Int ->
                 logger.info("📥 Source generated number: {}", num)
                 num
             }
             route { p: Int ->
                 val channel =
-                    if (p % 2 == 0) {
+                    if (p % 2 == 0) { // if the number is even, it is routed to the even channel
                         "evenChannel"
-                    } else {
+                    } else { // if the number is odd, it is routed to the odd channel
                         "oddChannel"
                     }
                 logger.info("🔀 Router: {} → {}", p, channel)
@@ -74,7 +76,8 @@ class IntegrationApplication(
         }
 
     /**
-     * Polls the integer source every 100 ms and sends the numbers to the number channel.
+     * Polls the integer source every 100 ms and sends the numbers to the numberChannel.
+     * These numbers come from the atomic integer source.
      */
     @Bean
     fun pollerFlow(integerSource: AtomicInteger): IntegrationFlow =
@@ -91,7 +94,7 @@ class IntegrationApplication(
         integrationFlow("evenChannel") {
             transform { obj: Int ->
                 logger.info("  ⚙️  Even Transformer: {} → 'Number {}'", obj, obj)
-                "Number $obj"
+                "Number $obj" // transform the even number to a string
             }
             handle { p ->
                 logger.info("  ✅ Even Handler: Processed [{}]", p.payload)
@@ -107,16 +110,16 @@ class IntegrationApplication(
     fun oddFlow(): IntegrationFlow =
         integrationFlow("oddChannel") {
             transform { obj: Int ->
-                if (obj > 0 && obj % 2 != 0) {
+                if (obj > 0 && obj % 2 != 0) { // Filter condition: only positive odd numbers are transformed
                     logger.info("  🔍 Odd Filter: checking {} → {}", obj, "PASS")
                     logger.info("  ⚙️  Odd Transformer: {} → 'Number {}'", obj, obj)
-                    "Number $obj"
+                    "Number $obj" // transform the odd number to a string
                 } else {
                     obj // Se deja tal cual, para que los negativos pasen sin transformación
                 }
             }
             handle { p ->
-                logger.info("  ✅ Odd Handler: Processed [{}]", p.payload)
+                logger.info("  ✅ Odd Handler: Processed [{}]", p.payload) // first odd handler
             }
         }
 
@@ -139,7 +142,7 @@ class IntegrationApplication(
 class SomeService {
     @ServiceActivator(inputChannel = "oddChannel")
     fun handle(p: Any) {
-        logger.info("  🔧 Service Activator: Received [{}] (type: {})", p, p.javaClass.simpleName)
+        logger.info("  🔧 Service Activator: Received [{}] (type: {})", p, p.javaClass.simpleName) // second odd handler (the odd service)
     }
 }
 

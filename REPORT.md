@@ -6,17 +6,18 @@ Paula Soriano Sánchez (843710)
 
 ![Before Diagram](diagrams/before.png)
 
-The initial code implements a number processing flow using Spring Integration:
+The initial code implements a number processing flow using Spring Integration.
 
 ### Number Generation
 
-Sequential numbers are generated (integerSource) every 100 ms.
+Sequential numbers are generated (integerSource) every 100 ms. 
 Additionally, negative random numbers are injected via a scheduled gateway.
 
 ### Channels and Router
 
 There are two channels: oddChannel and evenChannel.
-A router directs numbers based on parity: even → evenChannel, odd → oddChannel.
+A router directs numbers based on parity: even → evenChannel, odd → oddChannel. However, even numbers are processed as odd numbers.
+In addition, there is no central channel that receives all the messages
 
 ### Processing
 
@@ -40,8 +41,8 @@ The original filter logic inside oddFlow allowed some even numbers to pass throu
 
 The solution was to change the condition from `p % 2 == 0` to `p % 2 != 0`, ensuring only positive odd numbers are transformed.
 
-- **Bug 2: Gateway apuntando a evenChannel**:
-The problem was that the gateway was sending negative numbers to the evenChannel, so those numbers which were impair negatives were considered as pair numbers. This made them skip the filter and the transformer. Firstly, it was thought to make the gateway apuntar to the numberChannel (`@Gateway(requestChannel = "numberChannel")`). However, this idea was discarded because it does not make much sense for the router to evaluate them as pai or impair numbers, as well as to pass through the transformation of the evenChannel if it is a pair negative number. The solution was to make the gateway apuntar to the oddChannel (`@Gateway(requestChannel = "oddChannel")`), so the negative numbers can go directly to the service activator without any unnecessary transformation.
+- **Bug 2: Gateway pointing a evenChannel**:
+The problem was that the gateway was sending negative numbers to the evenChannel, so those numbers which were impair negatives were considered as pair numbers. This made them skip the filter and the transformer. The solution was to make the gateway point to the numberChannel (`@Gateway(requestChannel = "numberChannel")`). In this way, all the numbers were initially managed by a common channel.
 
 - **Bug 3: oddChannel was a direct channel**:
 Both oddFlow and SomeService were subscribed to oddChannel, which was a DirectChannel by default. In DirectChannels, messages are delivered to a single subscriber. This caused some odd numbers to bypass the filter and transformer in oddFlow.
@@ -73,7 +74,7 @@ All understanding of the code, the modifications, and the reasoning about messag
 
 ## Additional Notes
 
-The questions of phases 1 and 2 of the assignment tasks are answered directly on the code.
+The questions that have been asked in the guide are answered directly on the code.
 
 ---
 
